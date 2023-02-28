@@ -1,0 +1,26 @@
+{
+  "name": "myfitbit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "firas lutfy",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "chart.js": "^4.0.1",
+    "dotenv": "^4.0.0",
+    "ejs": "^3.1.8",
+    "express": "^4.18.2",
+    "express-handlebars": "^3.0.0",
+    "express-session": "^1.15.3",
+    "morgan": "^1.8.2",
+    "passport": "^0.3.2",
+    "passport-fitbit-oauth2": "^1.0.2",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.1",
+    "ws": "^7.5.0"
+  }
+}

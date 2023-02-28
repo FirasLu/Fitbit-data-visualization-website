@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>My Fitbit</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- charts.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.2.0/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.0/dist/chartjs-adapter-luxon.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0/dist/chartjs-plugin-streaming.min.js"></script>
+    <!-- Montserrat Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+  </head>
+  <body>
+    <div class="grid-container">
+
+      <!-- Header -->
+      <header class="header">
+        <div class="main-title">
+          <p class="font-weight-bold"> Welcome <%= user.displayName %></p>
+        </div>
+      </header>
+      <!-- End Header -->
+
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div class="sidebar-title">
+          <div class="sidebar-brand">
+            <span class="material-icons-outlined">fitbit</span> My Fitbit
+          </div>
+          <span class="material-icons-outlined" onclick="closeSidebar()">close</span>
+        </div>
+
+        <ul class="sidebar-list">
+          <li class="sidebar-list-item">
+            <a href="/auth/fitbit/success">
+              <span class="material-icons-outlined">dashboard</span> Dashboard
+            </a>
+          </li>
+          <li class="sidebar-list-item">
+            <a href="/auth/fitbit/heart">
+              <span class="material-icons-outlined">monitor_heart</span> Heart Rate 
+            </a>
+          </li>
+          <li class="sidebar-list-item">
+            <a href="/auth/fitbit/steps">
+              <span class="material-icons-outlined">directions_walk</span> Steps
+            </a>
+          </li>
+          <li class="sidebar-list-item">
+            <a href="/auth/fitbit/sleep">
+              <span class="material-icons-outlined">nightlight</span> Sleep
+            </a>
+          </li>
+          <li class="sidebar-list-item">
+            <a href="/auth/fitbit/calories">
+              <span class="material-icons-outlined">local_fire_department</span> calories
+            </a>
+          </li>
+        </ul>
+      </aside>
+      <!-- End Sidebar -->
+
+      <!-- Main -->
+      <main class="main-container">
+
+
+        <div class="main-cards">
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">Height</p>
+              <span class="material-icons-outlined text-blue">height</span>
+            </div>
+            <span class="text-primary font-weight-bold"><%= user.height %> cm</span>
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">Weight</p>
+              <span class="material-icons-outlined text-green">monitor_weight</span>
+            </div>
+            <span class="text-primary font-weight-bold"><%= user.weight %> kg</span>
+          </div>
+          
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">Age</p>
+              <span class="material-icons-outlined text-orange">hourglass_empty</span>
+            </div>
+            <span class="text-primary font-weight-bold"><%= user.age %></span>
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">Gender</p>
+              <span class="material-icons-outlined">man/woman</span>
+            </div>
+            <span class="text-primary font-weight-bold"><%= user.gender %></span>
+          </div>
+
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">Calories</p>
+              <span class="material-icons-outlined text-orange">local_fire_department</span>
+            </div>
+            <span class="text-primary font-weight-bold"><%= caloriesOut %></span>
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">Distance</p>
+              <span class="material-icons-outlined text-blue">swap_calls</span>
+            </div>
+            <span class="text-primary font-weight-bold"><%= distance %> KM</span>
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <p class="text-primary">Floors</p>
+              <span class="material-icons-outlined text-green">stairs</span>
+            </div>
+            <span class="text-primary font-weight-bold"><%= floors %></span>
+          </div>
+
+        </div>
+
+        <div class="main-title">
+          <p> Live Data</p>
+        </div>
+
+        <div class="main-cards-live">
+          
+          <div class="card-live">
+            <div class="card-inner">
+              <p class="text-primary">Steps</p>
+              <span class="material-icons-outlined text-green">directions_walk</span>
+            </div>
+            <span class="text-primary font-weight-bold"><span id="steps"></span></span>
+          </div>
+ 
+          <div class="card-live">
+            <div class="card-inner">
+              <p class="text-primary">Heart Rate</p>
+              <span class="material-icons-outlined text-red">favorite</span>
+            </div>
+            <span class="text-primary font-weight-bold"><span id="hr">-</span></span><span id="hrTime">-</span>
+          </div>
+
+      </div>
+
+        <div class="charts">
+
+          <div class="charts-card">
+            <p class="chart-title">Heart Rate Streaming</p>
+            <div>
+              <canvas id="hrChart" style="height:100%;max-height:400px"></canvas>
+            </div>
+          </div>
+
+          <div class="charts-card">
+            
+            <p class="chart-title">Accelerometer</p>
+            <div>
+              <canvas id="accelChart" style="height:100%;max-height:400px"></canvas>
+            </div>
+          </div>
+
+        </div>
+      </main>
+      <!-- End Main -->
+
+    </div>
+
+    <!-- Scripts -->
+    <!-- Functions -->
+    <!-- Websocket -->
+    <script>
+      const wsUrl = 'ws://localhost:8080' // Update this to the network IP on which the server is running.
+      var heartRate;
+      var heartRateTime;
+      let connection                                // our WebSocket object
+      openConnection()
+      function openConnection() {
+        connection = new WebSocket(wsUrl)
+        connection.onopen = onConnectionOpen
+        connection.onmessage = onConnectionMessage
+        connection.onclose = onConnectionClose
+        connection.onerror = onConnectionError
+      }
+
+      function onConnectionOpen() {
+        console.log('client.html: connection open')
+        $("#steps").text("NO LIVE DATA");
+        $("#hr").text("NO LIVE DATA");
+        $("#hrTime").text("NO LIVE DATA");
+
+        configHr.options.scales.x.realtime.onRefresh = chart => {
+          chart.data.datasets.forEach(dataset => {
+                    dataset.data.push({
+                      x: Date.now(),
+                      y: 0        
+                    }) 
+                  });
+                }
+        
+      configAccel.options.scales.x.realtime.onRefresh = chart => {
+                    chart.data.datasets[0].data.push({
+                      x: Date.now(),
+                      y: 0    
+                    })
+                    chart.data.datasets[1].data.push({
+                      x: Date.now(),
+                      y: 0    
+                    }) 
+                    chart.data.datasets[2].data.push({
+                      x: Date.now(),
+                      y: 0
+                    }) 
+       }
+      }
+
+      function onConnectionMessage(e) {
+        let reading = JSON.parse(e.data)  // convert the message from a string back into an object
+        $("#steps").text(reading.steps);
+        $("#hr").text(reading.hr);
+        $("#hrTime").text(reading.time);
+        configHr.options.scales.x.realtime.onRefresh = chart => {
+          chart.data.datasets.forEach(dataset => {
+                    dataset.data.push({
+                      x: Date.now(),
+                      y: reading.hr        
+                    }) 
+                  });
+                }
+        
+      configAccel.options.scales.x.realtime.onRefresh = chart => {
+                    chart.data.datasets[0].data.push({
+                      x: Date.now(),
+                      y: reading.x       
+                    })
+                    chart.data.datasets[1].data.push({
+                      x: Date.now(),
+                      y: reading.y    
+                    }) 
+                    chart.data.datasets[2].data.push({
+                      x: Date.now(),
+                      y: reading.z
+                    }) 
+       }
+      }
+      function onConnectionClose() {
+        console.error(`client.html: connection closed: check server is running at ${wsUrl}`)
+      }
+
+      function onConnectionError() {
+        console.error(`client.html: connection error: check server is running at ${wsUrl}`)
+      }
+
+      setInterval(() => {   // periodically try to reopen the connection if need be
+        if (!connection.onmessage) {
+          console.error(`Watch is disconnected`)
+          console.log(`client.html: attempting to reopen connection`)
+          openConnection()
+        }
+      }, 1000)
+
+      setInterval(() => {   // periodically try to reopen the connection if need be
+        if (connection.readyState === WebSocket.CLOSED) {
+          console.error(`client.html: connection is closed: check server is running at ${wsUrl}`)
+          console.log(`client.html: attempting to reopen connection`)
+          openConnection()
+        }
+      }, 1000)
+    </script>
+
+    <!-- Chart -->
+    <script>
+      //Setup Block
+      const dataHr = {
+        labels: [],
+        datasets: [{
+          label: 'live',
+          data: [],
+          borderColor: 'rgb(255, 20, 20)',
+          tension: 0.1
+        }]
+
+      };
+      //Config Block
+      const configHr = {
+        type: 'line',
+        data: dataHr,
+        options: {
+          scales: {
+            x: {
+              type: 'realtime',
+              realtime: {
+              
+              }
+            },
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      };
+
+      //Render Block
+      const hrChart = new Chart(
+        document.getElementById('hrChart'),
+        configHr
+      );
+
+      new Chart(ctx, {
+      });
+    </script>
+    
+    <script>
+      //Setup Block
+      const data = {
+        labels: [],
+        datasets: [{
+          label: 'x',
+          data: [],
+          borderColor: 'rgb(255, 20, 20)',
+          tension: 0.1
+        },
+      {
+        label: 'y',
+        data: [],
+        borderColor: 'rgb(20, 255, 20)',
+        tension: 0.1
+
+      },{
+        label: 'z',
+        data: [],
+        borderColor: 'rgb(20, 20, 255)',
+        tension: 0.1
+
+      }]
+
+      };
+      //Config Block
+      const configAccel = {
+        type: 'line',
+        data,
+        options: {
+          scales: {
+            x: {
+              type: 'realtime',
+              realtime: {
+          
+                        }
+            },
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      };
+      //Render Block
+      const accelChart = new Chart(
+        document.getElementById('accelChart'),
+        configAccel
+      );
+
+      new Chart(ctx, {
+      });
+    </script>
+    
+  </body>

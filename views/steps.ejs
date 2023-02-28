@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>My Fitbit</title>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Montserrat Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+  <div class="grid-container">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="main-title">
+        <p class="font-weight-bold"> Welcome <%= user.displayName %></p>
+      </div>
+    </header>
+    <!-- End Header -->
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-title">
+        <div class="sidebar-brand">
+          <span class="material-icons-outlined">fitbit</span> My Fitbit
+        </div>
+        <span class="material-icons-outlined" onclick="closeSidebar()">close</span>
+      </div>
+
+      <ul class="sidebar-list">
+        <li class="sidebar-list-item">
+          <a href="/auth/fitbit/success">
+            <span class="material-icons-outlined">dashboard</span> Dashboard
+          </a>
+        </li>
+        <li class="sidebar-list-item">
+          <a href="/auth/fitbit/heart">
+            <span class="material-icons-outlined">monitor_heart</span> Heart Rate    
+          </a>
+        </li>
+        <li class="sidebar-list-item">
+          <a href="/auth/fitbit/steps">
+            <span class="material-icons-outlined">directions_walk</span> Steps
+          </a>
+        </li>
+        <li class="sidebar-list-item">
+          <a href="/auth/fitbit/sleep">
+            <span class="material-icons-outlined">nightlight</span> Sleep
+          </a>
+        </li>
+        <li class="sidebar-list-item">
+          <a href="/auth/fitbit/calories">
+            <span class="material-icons-outlined">local_fire_department</span> calories
+          </a>
+        </li>
+      </ul>
+    </aside>
+    <!-- End Sidebar -->
+
+    <!-- Main -->
+    <main class="main-container">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.0/chartjs-plugin-zoom.min.js" integrity="sha512-B6F98QATBNaDHSE7uANGo5h0mU6fhKCUD+SPAY7KZDxE8QgZw9rewDtNiu3mbbutYDWOKT3SPYD8qDBpG2QnEg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<h1><span id="sleepSum"><%= steps %> Steps</span></h1>
+<canvas id="myChart" style="height: 100%; max-height: 800px"></canvas>
+<script>
+
+var converter = function(data){
+    data = String(data);
+    data = JSON.parse(data);
+    return data;
+};
+
+let times = converter('<%- JSON.stringify(times) %>');
+let stepsValues = converter('<%- JSON.stringify(stepsValues) %>');
+
+
+var xValues = times;
+var yValues = stepsValues;
+
+var chart = new Chart("myChart", {
+    type: "bar",
+    data: {
+    labels: xValues,
+    datasets: [{
+      label: 'Steps',
+      fill: false,
+      lineTension: 0,
+      backgroundColor: "rgba(54, 120, 81, 0.8)",
+      borderColor: "rgba(255,0,0,1)",
+      data: yValues
+    }]
+  },
+  options:  {
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 5
+        }
+      }
+    },
+    plugins: {
+      zoom: {
+        pan: {
+          enabled: true,
+          mode: 'x',
+          threshold: 10         
+        },
+       zoom: {
+        mode: 'x',
+        overScaleMode: 'x',
+        wheel: {
+            enabled: true,
+          },
+        },
+      }
+    },
+  }
+});
+
+
+</script>
+
+<form id="dates">
+  <input type="date" name="start-date" style="width: 120px; height: 10px" required>
+  <input type="date" name="end-date" style="width: 120px; height: 10px" required>
+  <button id="updateSteps" class="btn" style="font-size: medium; width: 80px; height: 40px">update</button>
+</form>
+
+<script>
+   $( document ).ready(function() {
+      $('#updateSteps').on('click', function(e) {
+        e.preventDefault();
+        var startDate = $('input[name="start-date"').val();
+        var endDate = $('input[name="end-date"').val();
+        console.log(startDate);
+        console.log(endDate);
+        $.ajax({
+          'type': 'POST',
+          'url': '/updateSteps',
+          'data': {startDate: startDate, endDate: endDate},
+          'success' : function(data) {
+            $("#sleepSum").text("");
+            var newLabel = JSON.stringify(data.dateTimes)
+            newLabel = String(newLabel);
+            newLabel = JSON.parse(newLabel);
+
+            chart.data.datasets[0].data = data.stepsDayValue;
+            chart.data.labels = newLabel;
+
+            chart.update();
+
+     
+      }
+        })
+      });
+    });
+</script>
+    </main>
+    <!-- End Main -->
+
+  </div>  
+</body>
+</html>

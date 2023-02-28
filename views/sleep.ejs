@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>My Fitbit</title>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Montserrat Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+  </head>
+
+  <body>
+    <div class="grid-container">
+
+      <!-- Header -->
+      <header class="header">
+        <div class="main-title">
+          <p class="font-weight-bold"> Welcome <%= user.displayName %></p>
+        </div>
+      </header>
+      <!-- End Header -->
+
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div class="sidebar-title">
+          <div class="sidebar-brand">
+            <span class="material-icons-outlined">fitbit</span> My Fitbit
+          </div>
+          <span class="material-icons-outlined" onclick="closeSidebar()">close</span>
+        </div>
+
+        <ul class="sidebar-list">
+          <li class="sidebar-list-item">
+            <a href="/auth/fitbit/success">
+              <span class="material-icons-outlined">dashboard</span> Dashboard
+            </a>
+          </li>
+          <li class="sidebar-list-item">
+            <a href="/auth/fitbit/heart">
+              <span class="material-icons-outlined">monitor_heart</span> Heart Rate    
+            </a>
+          </li>
+          <li class="sidebar-list-item">
+            <a href="/auth/fitbit/steps">
+              <span class="material-icons-outlined">directions_walk</span> Steps
+            </a>
+          </li>
+          <li class="sidebar-list-item">
+            <a href="/auth/fitbit/Sleep">
+              <span class="material-icons-outlined">nightlight</span> Sleep
+            </a>
+          </li>
+          <li class="sidebar-list-item">
+            <a href="/auth/fitbit/calories">
+              <span class="material-icons-outlined">local_fire_department</span> calories
+            </a>
+          </li>
+        </ul>
+      </aside>
+      <!-- End Sidebar -->
+
+      <!-- Main -->
+      <main class="main-container">
+        <h1><span id="sleepSum"><%= hours %> Std <%= minutes %> Min</span></h1>
+        <h2>
+          <span id="start">Start: <%= startTime %></span>
+          <span id="end">End: <%= endTime %></span>
+        </h2>
+    
+        <canvas id="myChart"></canvas>
+        <script>
+          var converter = function (data) {
+            data = String(data);
+            data = JSON.parse(data);
+            return data;
+          };
+    
+          var xValues = ["Awake", "Deep", "Light", "REM"];
+          var yValues = [
+            converter("<%- JSON.stringify(wake) %>"),
+            converter("<%- JSON.stringify(deep) %>"),
+            converter("<%- JSON.stringify(light) %>"),
+            converter("<%- JSON.stringify(rem) %>"),
+          ];
+          var barColors = ["#b91d47", "#2b5797", "#00aba9", "#36b978"];
+    
+          var chart = new Chart("myChart", {
+            type: "pie",
+            data: {
+              labels: xValues,
+              datasets: [
+                {
+                  backgroundColor: barColors,
+                  data: yValues,
+                },
+              ],
+            },
+            options: {
+              title: {
+                display: true,
+                text: "Sleep Stages",
+              },
+            },
+          });
+        </script>
+    
+        <form id="dates">
+          <input type="date" name="update-date" style="width: 120px; height: 10px" required>
+          <button id="updateSleep" class="btn" style="font-size: medium; width: 80px; height: 40px">update</button>
+        </form>
+        <script>
+          $(document).ready(function () {
+            $("#updateSleep").on("click", function (e) {
+              e.preventDefault();
+              var updateDate = $('input[name="update-date"').val();
+              console.log(updateDate);
+              $.ajax({
+                type: "POST",
+                url: "/updateSleep",
+                data: { updateDate: updateDate },
+                success: function (data) {
+                  $("#sleepSum").text(data.hours + " Std " + data.minutes + " Min");
+                  $("#start").text("Start: " + data.startTime);
+                  $("#end").text("End: " + data.endTime);
+                  chart.data.datasets[0].data = [
+                    data.wake,
+                    data.deep,
+                    data.light,
+                    data.rem,
+                  ];
+                  chart.update();
+                },
+              });
+            });
+          });
+        </script>
+      </body>
+      </main>
+      <!-- End Main -->
+
+    </div>   
+</html>
